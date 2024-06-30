@@ -1005,7 +1005,7 @@ figcaption {
 }
 
 .section-video-header {
-  background-image: linear-gradient(180deg, var(--background-colors--primary) 3%, var(--swatch--transparent) 9%, var(--swatch--transparent) 90%, var(--background-colors--primary) 98%), linear-gradient(to bottom, rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url('./images/Video_Header_BG.jpg');
+  background-image: linear-gradient(180deg, var(--background-colors--primary) 3%, var(--swatch--transparent) 9%, var(--swatch--transparent) 90%, var(--background-colors--primary) 98%), linear-gradient(to bottom, rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url('./../images/Video_Header_BG.jpg');
   background-position: 0 0, 0 0, 100%;
   background-size: auto, auto, cover;
   position: relative;
@@ -1938,7 +1938,7 @@ figcaption {
 }
 
 .background-gradient-top {
-  background-image: linear-gradient(180deg, var(--background-colors--primary), var(--swatch--transparent) 35%, var(--background-colors--primary)), url('./images/Header_Background.jpg');
+  background-image: linear-gradient(180deg, var(--background-colors--primary), var(--swatch--transparent) 35%, var(--background-colors--primary)), url('./../images/Header_Background.jpg');
   background-position: 0 0, 0 0;
   background-size: auto, cover;
   width: 100%;
@@ -2059,7 +2059,7 @@ figcaption {
 }
 
 .background-image {
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, .3)), linear-gradient(180deg, var(--swatch--transparent), var(--swatch--transparent) 81%, var(--background-colors--primary)), url('./images/Header_Background.jpg');
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, .3)), linear-gradient(180deg, var(--swatch--transparent), var(--swatch--transparent) 81%, var(--background-colors--primary)), url('./../images/Header_Background.jpg');
   background-position: 0 0, 0 0, 50%;
   background-repeat: repeat, repeat, repeat;
   background-size: auto, auto, cover;
@@ -2068,7 +2068,7 @@ figcaption {
 }
 
 .background-image.cta {
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), linear-gradient(180deg, var(--background-colors--primary), var(--swatch--transparent) 11%, var(--swatch--transparent) 76%, var(--background-colors--primary)), url('./images/CTA_Bg.jpg');
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, .4), rgba(0, 0, 0, .4)), linear-gradient(180deg, var(--background-colors--primary), var(--swatch--transparent) 11%, var(--swatch--transparent) 76%, var(--background-colors--primary)), url('./../images/CTA_Bg.jpg');
   background-position: 0 0, 0 0, 50%;
   background-repeat: repeat, repeat, repeat;
   background-size: auto, auto, cover;
