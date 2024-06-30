@@ -1,11 +1,7 @@
 let vh = window.innerHeight * 0.01;
 document.documentElement.style.setProperty('--vh', `${vh}px`);
-/* const cat = new Image(); */
-/* cat.src = './img/5eXXf4mf6iE.jpg' */
-/* console.log(cat) */
-/* window.addEventListener('DOMContentLoaded', () => { */
 
-    const expertName = document.querySelector(".expert_name");
+const expertName = document.querySelector(".expert_name");
     const expertNamePlace = document.querySelector(".expert_name-place");
     const expertBlock = document.querySelector("#expert_block");
     const chatImgUser = document.querySelector(".img_user");
@@ -40,7 +36,7 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
           date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
           expires = "; expires=" + date.toUTCString();
         }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/ SameSite=Lax";
       }
       
       function getCookie(name) {
@@ -58,13 +54,31 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
         return getCookie("user_id");
       }
 
-     /*  function getUserHistory(userId) {
+      async function displayMessageHistory(history) {
+        // Очищаем окно сообщений перед отображением новых
+        const chatMessageWindow = document.querySelector('.chat_message-window');
+        /* chatMessageWindow.innerHTML = ''; */
+    
+        // Перебираем историю сообщений и добавляем их на страницу
+        history.forEach((message) => {
+            if (message.role === 'user') {
+                addMessage(message.content, 'my_message');
+            } else if (message.role === 'assistant') {
+                addMessage(message.content, 'other_message');
+            }
+        });
+    
+        // Перемещаем скролл вниз, чтобы видеть последние сообщения
+        chatMessageWindow.scrollTop = chatMessageWindow.scrollHeight;
+    }
+
+      async function getUserHistory(userId) {
         const url = 'https://aifounds.xyz/api/get_history';
         const body = {
             user_id: userId
         };
         try {
-            const response = fetch(url, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -73,9 +87,10 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
             });
     
             if (response.ok) {
-                const data = response.json();
+                const data = await response.json();
                 if (data.message === "True") {
                     console.log('История взаимодействий пользователя:', data.response_history);
+                    displayMessageHistory(data.response_history); // Отображаем историю сообщений
                     return data.response_history;
                 } else {
                     console.log('Неожиданный ответ:', data);
@@ -91,8 +106,7 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
             console.error('Ошибка при выполнении запроса:', error);
         }
     }
- */
-
+    
       async function createUserFetch() {
         let userId = getUserIdFromCookie();
         if (!userId) {
@@ -126,7 +140,7 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
     const promise = new Promise((resolve) => {
 
         setTimeout(() => {
-            document.querySelector('.spinner-text').innerHTML = `Специалист найден. Подключение...`
+            document.querySelector('.spinner-text').innerHTML = 'Специалист найден. Подключение...'
         }, 1500)
         setTimeout(() => {
             document.querySelector('.loader-container').classList.add("hidden");
@@ -134,20 +148,13 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
         }, 25)
     })
 
-    /* const promise2 = new Promise((resolve) => {
-        //здесь запрос на сервер
-        fetch(`https://jsonplaceholder.typicode.com/photos/${Math.floor(Math.random() * 1000)}`)
-            .then(response => response.json())
-            .then(response => resolve(response))
-
-    }) */
-           
-    
-    function animateTyping(message, initialMessage = null) { // Add optional initialMessage parameter
+function animateTyping(message, initialMessage = null) { // Add optional initialMessage parameter
         const promise = new Promise((resolve, reject) => {
             setTimeout(() => {
-                document.querySelector('.footer').style.opacity = '1';
+                /* document.querySelector('.footer').style.opacity = '1'; */
                 document.querySelector('.message_wrapper').classList.add('show');
+                moveToMessage(document.querySelector('.expert_img'), chatImgUser);
+                document.querySelector('.form_textarea').removeAttribute('disabled');
                 resolve();
             }, 2000);
         });
@@ -159,21 +166,60 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
         promise.then(() => {
             /* setTimeout(() => { */
                 otherMessage.children[0].children[0].innerHTML = initialMessage ? initialMessage : `${message}`; // Use initialMessage if provided
-                document.querySelector('.form_textarea').removeAttribute('disabled');
+                /* document.querySelector('.form_textarea').removeAttribute('disabled'); */
             /* }, 4000); */
         });
     }
-    
 
-    promise.then(() => {
+   promise.then(() => {
+    let dataa;
+    createUserFetch()
+        .then((data) => {
+            animateBlock(data.image);
+            expertName.textContent = data.assistant_name;
+            dataa = data;
+            return data;
+        })
+        .then((data) => {
+            document.querySelector('.footer').style.opacity = '1';
+            setTimeout(() => {
+                moveToChatHeader(expertName, expertNamePlace);
+            }, 2000);
+            return data;
+        })
+        .then(() => {
+            const userId = getUserIdFromCookie();
+            if (userId) {
+                return getUserHistory(userId); // Получаем историю сообщений после инициализации
+            }
+        })
+        .then((responseHistory) => {
+            console.log(responseHistory);
+            if (responseHistory.length === 0) {
+                animateTyping(dataa.message.charAt(0).toUpperCase() + dataa.message.slice(1));
+               /*  setTimeout(() => {
+                    moveToMessage(document.querySelector('.expert_img'), chatImgUser); */
+                    /* document.querySelector('.form_textarea').removeAttribute('disabled'); */
+               /*  }, 2000); */
+            } else {
+                setTimeout(() => {
+                    document.querySelector('.form_textarea').removeAttribute('disabled');
+                }, 2000);
+                console.log('История сообщений не пуста:', responseHistory);
+            }
+        });
+});
+
+/*     promise.then(() => {
         createUserFetch()
             .then((data) => {
                 animateBlock(data.image);
                 expertName.textContent = data.assistant_name;
                 return data;
             })
+           
             .then((data) => {
-                animateTyping(data.message.charAt(0).toUpperCase() + data.message.slice(1)/* , "Здравствуйте! Я ваш специалист :)" */);
+                animateTyping(data.message.charAt(0).toUpperCase() + data.message.slice(1));
                 setTimeout(() => {
                     moveToMessage(document.querySelector('.expert_img'), chatImgUser);
                 }, 2000);
@@ -182,8 +228,14 @@ document.documentElement.style.setProperty('--vh', `${vh}px`);
                 setTimeout(() => {
                     moveToChatHeader(expertName, expertNamePlace);
                 }, 1500);
-            });
-    });
+            })
+            .then(() => {
+                const userId = getUserIdFromCookie();
+                if (userId) {
+                    getUserHistory(userId); // Получаем историю сообщений после инициализации
+                }
+            })
+    }); */
 
     function moveToChatHeader(picture, cart) {
         let picture_pos = picture.getBoundingClientRect();
@@ -343,105 +395,8 @@ console.log(lastMessageTime);
             document.querySelector('.chat_message-window').insertAdjacentElement('afterbegin', messageWrapper);
         }
     }
-    /* function debounce(fn, delay) {
-        let timeoutId;
-        let strings = [];
 
-        return function (...args) {
-            strings.push(...args);
-
-            clearTimeout(timeoutId);
-
-            timeoutId = setTimeout(() => {
-                fn(strings);
-                strings = [];
-            }, delay);
-            console.log("i work");
-        };
-        
-    } */
-        /* function debounce(fn, delay) {
-            let timeoutId;
-            return function (...args) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                    fn(...args);
-                }, delay);
-            };
-        } */
-
-            
-
-/*     async function messageFetch(message) {
-        const BASE_URL = "https://aifounds.xyz";
-        const url = `${BASE_URL}/api`;
-      
-        const payload = {
-          user_id: "1",
-          message: message,
-        };
-      
-        const headers = {
-          "Content-Type": "application/json",
-        };
-      
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(payload),
-          });
-      
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Response from /api:", data);
-                addMessage(data.message.charAt(0).toUpperCase() + data.message.slice(1), 'other_message');
-            return data;
-          } else if (response.status === 404) {
-            console.error("Error: User not found");
-          } else {
-            console.error(
-              "Error:",
-              response.status,
-              await response.text()
-            );
-          }
-        } catch (error) {
-          console.error("Error during fetch:", error);
-        }
-      }; */
-/* 
-      async function createUserFetch(userId) {
-        const BASE_URL = "https://aifounds.xyz";
-        const url = `${BASE_URL}/create_user`;
-        const payload = {
-          user_id: "1",
-        };
-        const headers = {
-          "Content-Type": "application/json",
-        };
-      
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(payload),
-          });
-      
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Response from /create_user:", data);
-            return data;
-          } else {
-            console.error("Error:", response.status, response.statusText);
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-          }
-        } catch (error) {
-          console.error("Error during fetch:", error);
-          throw error;
-        }
-      }; */
-      let writeWaiting = 0;
+  let writeWaiting = 0;
       let dataMessage = '';
       console.log(writeWaiting);
       console.log(dataMessage);
@@ -470,24 +425,8 @@ console.log(lastMessageTime);
           messageBuffer = '';
       }
   }
-/*     async function handleMessage() {
-        if (messageBuffer) {
-            console.log("Начало обработки сообщения");
-            try {
-                const data = await messageFetch(messageBuffer); */
-                /* if (data) {
-                    dataMessage = data.message;
-                    createLoadingText('.chat_message-window');
-                } */
-           /*  } catch (error) {
-                console.error("Ошибка при обработке сообщения:", error);
-            }
-            messageBuffer = '';
-            console.log(writeWaiting);
-        }
-    } */
-    
-        async function createLoadingText(pasteTo, writeWaiting) {
+
+    async function createLoadingText(pasteTo, writeWaiting) {
           console.log("Создание загрузочного текста...");
           const waveDiv = document.createElement('div');
           waveDiv.classList.add('loading-wave');
@@ -549,8 +488,7 @@ console.log(lastMessageTime);
               writeWaiting = data.message.length / 10 * 1000;
               console.log("Данные получены успешно");
               console.log(writeWaiting);
-  // Показываем loading text перед отправкой запроса
-  createLoadingText('.chat_message-window', writeWaiting);
+            createLoadingText('.chat_message-window', writeWaiting);
               setTimeout(() => {
                   addMessage(data.message.charAt(0).toUpperCase() + data.message.slice(1), 'other_message');
               }, writeWaiting);
@@ -569,49 +507,8 @@ console.log(lastMessageTime);
           return Promise.reject(error);
       }
   }
-      
- /*  async function handleMessage() {
-    if (messageBuffer) {
-        await debounce(async () => {
-            await messageFetch(messageBuffer);
-            console.log(messageBuffer);
-            messageBuffer = '';
-            console.log(messageBuffer);
-            createLoadingText('.chat_message-window');
-            console.log(dataMessage);
-        }, 3000)();
-    }
-} */
 
-    /* function fetchArray(strings) {
-        const promise = new Promise((resolve, reject) => {
-
-            fetch(`https://jsonplaceholder.typicode.com/comments/${Math.floor(Math.random() * 500)}`)
-                .then(response => response.json())
-                .then(response => resolve(response))
-
-        })
-        promise.then((data) => {
-            setTimeout(() => {
-                addMessage(data.body.charAt(0).toUpperCase() + data.body.slice(1), 'other_message');
-            }, 0)
-        })
-        console.log(strings);
-    } */
-   /*  const debouncedFunction = debounce(messageFetch(), 3000); */
-/*     messageForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        let inputValue = document.querySelector('.form_textarea').value;
-        if (inputValue) {
-            addMessage(inputValue, 'my_message');
-            console.log(inputValue);
-            createLoadingText('.chat_message-window');
-            debounce(messageFetch, 3000)(inputValue);
-        }
-        document.querySelector('.form_textarea').value = '';
-    }) */
-
-        messageForm.addEventListener('submit', (e) => {
+ messageForm.addEventListener('submit', (e) => {
           e.preventDefault();
           let inputValue = document.querySelector('.form_textarea').value;
           if (inputValue) {
@@ -635,18 +532,3 @@ console.log(lastMessageTime);
           }
           document.querySelector('.form_textarea').value = '';
       });
-    //боковое меню и бургер
-    // document.querySelector('.burger').addEventListener('click', () => {
-    //     document.querySelector('.chat_user_list-wrap').classList.add('active');
-    //     document.querySelector('.chat_user-close-modal').style.display = 'block'
-    // })
-    // document.querySelector('.chat_user-close-modal').addEventListener('click', () => {
-    //     document.querySelector('.chat_user_list-wrap').classList.remove('active')
-    //     document.querySelector('.chat_user-close-modal').style.display = 'none'
-    // })
-    // document.querySelectorAll('.user_list-onBack')[1].addEventListener('click', () => {
-    //     document.querySelector('.chat_user_list-wrap').classList.remove('active')
-    // })
-
-
-/* }); */
