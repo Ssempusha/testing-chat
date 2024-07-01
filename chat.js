@@ -143,16 +143,31 @@ const expertName = document.querySelector(".expert_name");
             throw error;
         }
     }
+    
+    function getRandomTimeout(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
     const promise = new Promise((resolve) => {
-
+        const randomDelay1 = getRandomTimeout(8000, 13000);
+        console.log('Первый randomDelay:', randomDelay1);
+    
         setTimeout(() => {
-            document.querySelector('.spinner-text').innerHTML = 'Специалист найден. Подключение...'
-        }, 1500)
+            document.querySelector('.spinner-text').innerHTML = 'Специалист найден. Подключение...';
+            console.log('Первый setTimeout сработал через', randomDelay1, 'мс');
+        }, randomDelay1);
+    
+        const randomDelay2 = getRandomTimeout(8000, 13000);
+        const totalDelay = randomDelay1 + randomDelay2;
+        console.log('Второй randomDelay:', randomDelay2);
+        console.log('Суммарная задержка для второго setTimeout:', totalDelay);
+    
         setTimeout(() => {
             document.querySelector('.loader-container').classList.add("hidden");
-            resolve()
-        }, 25)
-    })
+            console.log('Второй setTimeout сработал через', totalDelay, 'мс');
+            resolve();
+        }, totalDelay);
+    });
 
 function animateTyping(message, initialMessage = null) { // Add optional initialMessage parameter
         const promise = new Promise((resolve, reject) => {
