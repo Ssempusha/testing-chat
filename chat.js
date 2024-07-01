@@ -32,27 +32,27 @@ const expertName = document.querySelector(".expert_name");
     function setCookie(name, value, days) {
         var expires = "";
         if (days) {
-          var date = new Date();
-          date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-          expires = "; expires=" + date.toUTCString();
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
         }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/ SameSite=Lax";
-      }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Lax";
+    }
       
-      function getCookie(name) {
+    function getCookie(name) {
         var nameEQ = name + "=";
         var ca = document.cookie.split(';');
         for(var i=0;i < ca.length;i++) {
-          var c = ca[i];
-          while (c.charAt(0) === ' ') c = c.substring(1,c.length);
-          if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+            var c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
         }
         return null;
-      }
-      
-      function getUserIdFromCookie() {
+    }
+    
+    function getUserIdFromCookie() {
         return getCookie("user_id");
-      }
+    }
 
       async function displayMessageHistory(history) {
         // Очищаем окно сообщений перед отображением новых
@@ -72,11 +72,18 @@ const expertName = document.querySelector(".expert_name");
         chatMessageWindow.scrollTop = chatMessageWindow.scrollHeight;
     }
 
-      async function getUserHistory(userId) {
+    async function getUserHistory(/* userId */) {
+        // Добавляем задержку в 100 миллисекунд перед получением cookie
+        await new Promise(resolve => setTimeout(resolve, 100));
+    
+        const userIdFromCookie = getUserIdFromCookie();
+        console.log('User ID from cookie:', userIdFromCookie);
+    
         const url = 'https://aifounds.xyz/api/get_history';
         const body = {
-            user_id: userId
+            user_id: userIdFromCookie
         };
+    
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -107,36 +114,35 @@ const expertName = document.querySelector(".expert_name");
         }
     }
     
-      async function createUserFetch() {
-        let userId = getUserIdFromCookie();
-        if (!userId) {
-          userId = generateUUID();
-          setCookie("user_id", userId, 365); // Сохраняем куку на 1 год
-        }
-      console.log(userId);
-        const url = "https://aifounds.xyz/api/create_user";
-        const payload = { user_id: userId };
-      
+    async function createUserFetch() {
         try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-      
-          if (response.ok) {
+            let userId = getUserIdFromCookie();
+            if (!userId) {
+                userId = generateUUID();
+                setCookie("user_id", userId, 365); // Сохраняем куку на 1 год
+            }
+            console.log('User ID:', userId); // Добавляем вывод текущего ID пользователя
+            const url = "https://aifounds.xyz/api/create_user";
+            const payload = { user_id: userId };
+    
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+            }
+    
             const data = await response.json();
             console.log("Response from create_user:", data);
             return data;
-          } else {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-          }
         } catch (error) {
-          console.error("Error during fetch:", error);
-          throw error;
+            console.error("Error during fetch or cookie handling:", error);
+            throw error;
         }
-      }
-
+    }
     const promise = new Promise((resolve) => {
 
         setTimeout(() => {
@@ -171,44 +177,45 @@ function animateTyping(message, initialMessage = null) { // Add optional initial
         });
     }
 
-   promise.then(() => {
-    let dataa;
-    createUserFetch()
-        .then((data) => {
-            animateBlock(data.image);
-            expertName.textContent = data.assistant_name;
-            dataa = data;
-            return data;
-        })
-        .then((data) => {
-            document.querySelector('.footer').style.opacity = '1';
-            setTimeout(() => {
-                moveToChatHeader(expertName, expertNamePlace);
-            }, 2000);
-            return data;
-        })
-        .then(() => {
-            const userId = getUserIdFromCookie();
-            if (userId) {
-                return getUserHistory(userId); // Получаем историю сообщений после инициализации
-            }
-        })
-        .then((responseHistory) => {
-            console.log(responseHistory);
-            if (responseHistory.length === 0) {
-                animateTyping(dataa.message.charAt(0).toUpperCase() + dataa.message.slice(1));
-               /*  setTimeout(() => {
-                    moveToMessage(document.querySelector('.expert_img'), chatImgUser); */
-                    /* document.querySelector('.form_textarea').removeAttribute('disabled'); */
-               /*  }, 2000); */
-            } else {
+    promise.then(() => {
+        let dataa;
+        createUserFetch()
+            .then((data) => {
+                animateBlock(data.image);
+                expertName.textContent = data.assistant_name;
+                dataa = data;
+                return data;
+            })
+            .then((data) => {
+                document.querySelector('.footer').style.opacity = '1';
                 setTimeout(() => {
-                    document.querySelector('.form_textarea').removeAttribute('disabled');
+                    moveToChatHeader(expertName, expertNamePlace);
                 }, 2000);
-                console.log('История сообщений не пуста:', responseHistory);
-            }
-        });
-});
+                return data;
+            })
+            .then(() => {
+                const userId = getUserIdFromCookie();
+                console.log('Получен User ID из куки:', userId);
+                if (userId) {
+                    console.log('Вызов функции getUserHistory');
+                    return getUserHistory(); // Получаем историю сообщений после инициализации
+                }
+            })
+            .then((responseHistory) => {
+                console.log('История сообщений:', responseHistory);
+                if (responseHistory && responseHistory.length === 0) {
+                    animateTyping(dataa.message.charAt(0).toUpperCase() + dataa.message.slice(1));
+                } else {
+                    setTimeout(() => {
+                        document.querySelector('.form_textarea').removeAttribute('disabled');
+                    }, 2000);
+                    console.log('История сообщений не пуста:', responseHistory);
+                }
+            })
+            .catch((error) => {
+                console.error('Ошибка в обработке цепочки промисов:', error);
+            });
+    });
 
 /*     promise.then(() => {
         createUserFetch()
